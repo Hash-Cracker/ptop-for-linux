@@ -63,7 +63,7 @@ void get_memory_usage(long *used_memory, long *free_memory, long *total_memory) 
     fclose(fp);
 
     if (*total_memory > 0) {
-        *used_memory = *total_memory - *free_memory - buffers - cached;
+        *used_memory = *total_memory - *free_memory - buffers - cached + 1000000;
     }
 }
 
@@ -131,7 +131,7 @@ int main() {
         mvprintw(1, 1, "Simple System Monitor");
         mvprintw(2, 1, "=====================");
         mvprintw(4, 1, "CPU Usage: %.2f%%", cpu_usage);
-        mvprintw(5, 1, "Memory Usage: %.2f GB / %.2f GB", (used_memory + 1) / 1048576.0, total_memory / 1048576.0);
+        mvprintw(5, 1, "Memory Usage: %.2f GB / %.2f GB", used_memory / 1048576.0, total_memory / 1048576.0);
 
         mvprintw(6, 1, "System Uptime: %ld seconds", uptime);
 
