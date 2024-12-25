@@ -63,7 +63,7 @@ void get_memory_usage(long *used_memory, long *free_memory, long *total_memory) 
     fclose(fp);
 
     if (*total_memory > 0) {
-        *used_memory = *total_memory - (*free_memory + buffers + cached);
+        *used_memory = *total_memory - *free_memory + buffers + cached;
     }
 }
 
