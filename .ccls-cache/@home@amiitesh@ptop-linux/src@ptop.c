@@ -132,7 +132,6 @@ int main() {
         mvprintw(2, 1, "=====================");
         mvprintw(4, 1, "CPU Usage: %.2f%%", cpu_usage);
         mvprintw(5, 1, "Memory Usage: %.2f GB / %.2f GB", used_memory / 1048576.0, total_memory / 1048576.0);
-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
 
         mvprintw(6, 1, "System Uptime: %ld seconds", uptime);
 
