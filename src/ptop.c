@@ -10,6 +10,34 @@
 #define CPU_INFO_FILE "/proc/stat"
 #define MEM_INFO_FILE "/proc/meminfo"
 
+// Nord theme vibrant colors
+enum {
+    NORD_BG = 1,
+    NORD_HEADER,
+    NORD_TEXT,
+    NORD_HIGHLIGHT,
+    NORD_RED,
+    NORD_GREEN,
+    NORD_YELLOW,
+    NORD_BLUE,
+    NORD_MAGENTA,
+    NORD_CYAN
+};
+
+void init_colors() {
+    start_color();
+    init_pair(NORD_BG, COLOR_BLACK, COLOR_BLACK);
+    init_pair(NORD_HEADER, COLOR_CYAN, COLOR_BLACK);
+    init_pair(NORD_TEXT, COLOR_WHITE, COLOR_BLACK);
+    init_pair(NORD_HIGHLIGHT, COLOR_BLUE, COLOR_BLACK);
+    init_pair(NORD_RED, COLOR_RED, COLOR_BLACK);
+    init_pair(NORD_GREEN, COLOR_GREEN, COLOR_BLACK);
+    init_pair(NORD_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(NORD_BLUE, COLOR_BLUE, COLOR_BLACK);
+    init_pair(NORD_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(NORD_CYAN, COLOR_CYAN, COLOR_BLACK);
+}
+
 void get_cpu_usage(double *cpu_usage) {
     static long prev_idle = 0, prev_total = 0;
     long user, nice, system, idle, iowait, irq, softirq, steal;
@@ -63,7 +91,7 @@ void get_memory_usage(long *used_memory, long *free_memory, long *total_memory) 
     fclose(fp);
 
     if (*total_memory > 0) {
-        *used_memory = *total_memory - *free_memory - buffers - cached + 1000000;
+        *used_memory = *total_memory - *free_memory - buffers - cached;
     }
 }
 
@@ -87,9 +115,12 @@ void list_running_processes(int start_line) {
 
     int line = start_line;
 
+    attron(COLOR_PAIR(NORD_HEADER));
     mvprintw(line++, 1, "PID       Process Name");
     mvprintw(line++, 1, "=======================");
+    attroff(COLOR_PAIR(NORD_HEADER));
 
+    int color_toggle = NORD_RED;
     while ((entry = readdir(proc_dir)) != NULL) {
         if (entry->d_type == DT_DIR && isdigit(entry->d_name[0])) {
             char path[256], process_name[256];
@@ -98,9 +129,13 @@ void list_running_processes(int start_line) {
             FILE *fp = fopen(path, "r");
             if (fp) {
                 if (fgets(process_name, sizeof(process_name), fp)) {
-                    // Remove trailing newline
                     process_name[strcspn(process_name, "\n")] = 0;
+                    attron(COLOR_PAIR(color_toggle));
                     mvprintw(line++, 1, "%-10s %s", entry->d_name, process_name);
+                    attroff(COLOR_PAIR(color_toggle));
+
+                    // Cycle through vibrant colors
+                    color_toggle = (color_toggle == NORD_CYAN) ? NORD_RED : color_toggle + 1;
                 }
                 fclose(fp);
             }
@@ -115,6 +150,10 @@ int main() {
     noecho();              
     curs_set(0);           
     timeout(0);            
+
+    init_colors();         // Initialize Nord theme colors
+    bkgd(COLOR_PAIR(NORD_BG));
+
     int refresh_rate = 2000; 
 
     double cpu_usage = 0.0;
@@ -128,16 +167,22 @@ int main() {
 
         clear();
 
+        attron(COLOR_PAIR(NORD_HEADER));
         mvprintw(1, 1, "Simple System Monitor");
         mvprintw(2, 1, "=====================");
+        attroff(COLOR_PAIR(NORD_HEADER));
+
+        attron(COLOR_PAIR(NORD_TEXT));
         mvprintw(4, 1, "CPU Usage: %.2f%%", cpu_usage);
         mvprintw(5, 1, "Memory Usage: %.2f GB / %.2f GB", used_memory / 1048576.0, total_memory / 1048576.0);
-
         mvprintw(6, 1, "System Uptime: %ld seconds", uptime);
+        attroff(COLOR_PAIR(NORD_TEXT));
 
         list_running_processes(8);
 
+        attron(COLOR_PAIR(NORD_HIGHLIGHT));
         mvprintw(LINES - 2, 1, "Press 'q' to quit.");
+        attroff(COLOR_PAIR(NORD_HIGHLIGHT));
 
         refresh();
 
@@ -146,11 +191,9 @@ int main() {
             break;
         }
 
-        // Sleep for the refresh rate
         usleep(refresh_rate * 1000);
     }
 
-    // End ncurses mode
     endwin();
     return 0;
 }
